@@ -74,3 +74,12 @@ describe("isolated path effort", () => {
 		assert.ok(!("effort" in options));
 	});
 });
+
+describe("isolated path system prompt", () => {
+	it("keeps Claude Code's preset and appends the caller's prompt", async () => {
+		const options = await runIsolated(fable, {});
+		assert.deepStrictEqual(options.systemPrompt, {
+			type: "preset", preset: "claude_code", append: "You are an advisor.",
+		});
+	});
+});

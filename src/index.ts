@@ -606,7 +606,14 @@ async function runIsolatedSummary(
 				settingSources: [] as SettingSource[],
 				skills: [],
 				persistSession: false,
-				systemPrompt: context.systemPrompt,
+				// Keep Claude Code's own system prompt and append the summarization
+				// prompt, as the provider path does. Replacing the preset is the one
+				// place the bridge would otherwise swap out Claude Code's prompt, and
+				// Anthropic support could not confirm that replacement is permitted.
+				systemPrompt: {
+					type: "preset", preset: "claude_code",
+					append: context.systemPrompt || undefined,
+				},
 				model: cliModel,
 				maxTurns: 1,
 				...(effort ? { effort } : {}),

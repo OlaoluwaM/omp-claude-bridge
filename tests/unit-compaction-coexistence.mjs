@@ -80,8 +80,9 @@ for (const owner of ["extension", "native", "declining-extension", "cancel", "er
 				for (const { options } of calls) {
 					assert.equal(options.persistSession, false);
 					assert.deepEqual(options.tools, []);
-					assert.equal(typeof options.systemPrompt, "string");
-					assert.match(options.systemPrompt, /summarization/);
+					assert.equal(options.systemPrompt.type, "preset");
+					assert.equal(options.systemPrompt.preset, "claude_code");
+					assert.match(options.systemPrompt.append, /summarization/);
 				}
 				assert.equal(closed, calls.length);
 			}
