@@ -59,6 +59,25 @@ const CC_CHILD_ENV = {
 	CLAUDE_CODE_ELEGANT_MEADOW: "0",
 } as const;
 
+// Variables that make Claude Code bill an API key or call another endpoint instead
+// of the signed-in subscription. OMP's environment can carry them (an exported key
+// for OMP's own anthropic provider, a project .env), and inheriting one would
+// switch the bridge's billing without any visible sign.
+const CC_BILLING_ENV_KEYS = [
+	"ANTHROPIC_API_KEY",
+	"ANTHROPIC_AUTH_TOKEN",
+	"ANTHROPIC_BASE_URL",
+	"CLAUDE_CODE_USE_BEDROCK",
+	"CLAUDE_CODE_USE_VERTEX",
+	"CLAUDE_CODE_USE_FOUNDRY",
+] as const;
+
+function claudeCodeChildEnv(): Record<string, string | undefined> {
+	const env: Record<string, string | undefined> = { ...process.env, ...CC_CHILD_ENV };
+	for (const key of CC_BILLING_ENV_KEYS) delete env[key];
+	return env;
+}
+
 // Pi owns context files on the provider path, so Claude Code must not load its
 // own on top: otherwise project CLAUDE.md/AGENTS.md files arrive twice, and
 // ~/.claude/CLAUDE.md — a user persona written for a harness that is not the
@@ -599,7 +618,7 @@ async function runIsolatedSummary(
 			prompt: promptText,
 			options: {
 				cwd,
-				env: { ...process.env, ...CC_CHILD_ENV },
+				env: claudeCodeChildEnv(),
 				settings: { autoMemoryEnabled: false },
 				tools: [],
 				strictMcpConfig: true,
@@ -922,6 +941,9 @@ export const __test = {
 	deliverToolResults,
 	drainForAbort,
 	CC_CHILD_ENV,
+	CC_BILLING_ENV_KEYS,
+	claudeCodeChildEnv,
+	mapToolArgs,
 	buildMcpServers,
 	get promptCaptures() {
 		return promptCaptures;
@@ -952,16 +974,19 @@ function piToolNameFor(name: string, customToolNameToPi: Map<string, string>): s
 	return customToolNameToPi.get(name) ?? customToolNameToPi.get(name.toLowerCase());
 }
 
-// Renames for Claude Code SDK param names that differ from pi's native names.
-// Keys not listed here pass through unchanged, so new pi params work automatically.
+// Renames for Claude Code SDK param names that differ from OMP's native names.
+// Keys not listed here pass through unchanged, so new OMP params work automatically.
+// Claude sees OMP's own schemas over MCP, so only the path alias needs mapping.
+// Edit keys are not renamed: OMP's replace mode takes old_string/new_string as is,
+// and the old pi oldText/newText renames broke every edit in that mode.
 const SDK_KEY_RENAMES: Record<string, Record<string, string>> = {
 	read:  { file_path: "path" },
 	write: { file_path: "path" },
-	edit:  { file_path: "path", old_string: "oldText", new_string: "newText", old_text: "oldText", new_text: "newText" },
+	edit:  { file_path: "path" },
 };
 
-// Maps SDK tool args to pi tool args via key renaming + pass-through.
-// Pi's own prepareArguments hooks handle any structural transforms (e.g. edit oldText/newText → edits[]).
+// Maps SDK tool args to OMP tool args via key renaming + pass-through. Bash calls
+// without a timeout keep OMP's own default (300 s) rather than a bridge-imposed cap.
 function mapToolArgs(
 	toolName: string, args: Record<string, unknown> | undefined,
 ): Record<string, unknown> {
@@ -971,10 +996,6 @@ function mapToolArgs(
 	for (const [key, value] of Object.entries(input)) {
 		const piKey = renames?.[key] ?? key;
 		if (!(piKey in result)) result[piKey] = value; // first alias wins
-	}
-	// Pi bash has no default timeout; add a safety default
-	if (toolName.toLowerCase() === "bash" && result.timeout == null) {
-		result.timeout = 120;
 	}
 	return result;
 }
@@ -2078,7 +2099,7 @@ function streamClaudeAgentSdk(model: Model<any>, context: Context, options?: Sim
 	// also autocompact would double-flush the prompt cache and races pi's
 	// threshold with CC's, including CC's anti-thrashing guard (issue #8).
 	// Manual /compact in CC still works (we never invoke it).
-	const childEnv = { ...process.env, ...CC_CHILD_ENV };
+	const childEnv = claudeCodeChildEnv();
 	const queryOptions: NonNullable<Parameters<typeof query>[0]["options"]> = {
 		cwd,
 		env: childEnv,
@@ -2377,7 +2398,7 @@ async function promptAndWait(
 		prompt,
 		options: {
 			cwd,
-			env: { ...process.env, ...CC_CHILD_ENV },
+			env: claudeCodeChildEnv(),
 			permissionMode: "bypassPermissions",
 			settings: { ...claudeCodeSettings(providerSettings), claudeMdExcludes: CLAUDE_MD_EXCLUDES },
 			skills: [],
