@@ -6,6 +6,10 @@ An [Oh My Pi](https://github.com/can1357/oh-my-pi) extension that integrates Cla
 
 This port incorporates [pi-claude-bridge](https://github.com/elidickinson/pi-claude-bridge) through **2026-10-23**, commit [`6aa276a`](https://github.com/elidickinson/pi-claude-bridge/commit/6aa276a1498e5376363f5c1f8cf04bfcaee38c93). See [port details and migration notes](documentation/upstream-sync-2026-10-23.md).
 
+## About this fork
+
+`custom-branch` of [OlaoluwaM/omp-claude-bridge](https://github.com/OlaoluwaM/omp-claude-bridge) is [DevVig/omp-claude-bridge](https://github.com/DevVig/omp-claude-bridge) with [PR #12](https://github.com/DevVig/omp-claude-bridge/pull/12) (the upstream sync above, which also folds in PR #3) plus one change: compaction and other one-off summaries keep Claude Code's own system prompt and append OMP's summarization prompt, instead of replacing Claude Code's prompt. The provider path already worked this way. `main` tracks DevVig's `main` unchanged.
+
 ## Install
 
 Requires **OMP >=18.13.2**, **Bun >=1.4.4**, and a working Claude Code login on the machine running OMP. Validation currently targets OMP 18.13.2.
