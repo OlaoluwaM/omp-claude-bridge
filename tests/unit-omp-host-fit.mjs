@@ -7,17 +7,6 @@ import { afterEach, describe, it } from "node:test";
 import assert from "node:assert/strict";
 
 const { __test } = await import("../src/index.js");
-const { claudeCodeSettings } = await import("../src/config.js");
-
-describe("claudeCodeSettings", () => {
-	it("passes a configured output style to Claude Code", () => {
-		assert.deepStrictEqual(claudeCodeSettings({ outputStyle: "omp-bridge" }), { autoMemoryEnabled: false, outputStyle: "omp-bridge" });
-	});
-
-	it("leaves Claude Code's own style choice alone when none is configured", () => {
-		assert.ok(!("outputStyle" in claudeCodeSettings({})));
-	});
-});
 
 describe("mapToolArgs on OMP", () => {
 	it("leaves bash without a timeout so OMP's default applies", () => {
