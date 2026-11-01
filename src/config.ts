@@ -40,6 +40,11 @@ export interface Config {
 		// Model ids (e.g. "claude-future-9") whose declared 1M context Claude Code
 		// does not actually serve; pins them to the bare id at 200K.
 		forceTwoHundredK?: string[];
+		// Name of a Claude Code output style (built-in or a custom style file) to
+		// run the provider under. A custom style replaces Claude Code's built-in
+		// software-engineering section, which describes Claude Code's own tools,
+		// with instructions written for OMP's tools.
+		outputStyle?: string;
 	};
 }
 
@@ -53,8 +58,11 @@ export function tryParseJson(path: string): Partial<Config> {
 	}
 }
 
-export function claudeCodeSettings(provider: Config["provider"] = {}): { autoMemoryEnabled: boolean } {
-	return { autoMemoryEnabled: provider.autoMemoryEnabled ?? false };
+export function claudeCodeSettings(provider: Config["provider"] = {}): { autoMemoryEnabled: boolean; outputStyle?: string } {
+	return {
+		autoMemoryEnabled: provider.autoMemoryEnabled ?? false,
+		...(provider.outputStyle ? { outputStyle: provider.outputStyle } : {}),
+	};
 }
 
 export function globalConfigPath(): string {

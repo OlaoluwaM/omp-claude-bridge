@@ -68,6 +68,7 @@ Global: `~/.omp/agent/claude-bridge.json`, following OMP's active profile and ag
 | `strictMcpConfig` | `true` | Ignore Claude Code's filesystem MCP configuration. Cloud MCP is always disabled for bridge queries. |
 | `autoMemoryEnabled` | `false` | Enable Claude Code's own auto-memory system. |
 | `pathToClaudeCodeExecutable` | SDK default | Override the Claude Code binary path. |
+| `outputStyle` | unset | Claude Code [output style](https://code.claude.com/docs/en/output-styles) for provider turns. A custom style (for example `~/.claude/output-styles/<name>.md`) replaces Claude Code's built-in software-engineering section, which describes Claude Code's own tools, with your instructions for OMP's tools. |
 
 OMP's rendered prompt blocks are preserved, including loaded project rules, skills, custom prompts, append text and extension instructions. The bridge uses what OMP actually loaded; it does not rediscover files. OMP's `--no-context-files` and `--no-skills` control those sources. Claude Code's own CLAUDE.md/AGENTS.md discovery is suppressed to avoid duplication.
 
